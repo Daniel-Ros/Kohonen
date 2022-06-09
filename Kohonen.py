@@ -7,12 +7,16 @@ import Helper as hp
 
 class Kohonen:
     def __init__(self, n, m, alpha, radius,name, loop_x=False):
+        """
+        Initialize the network with the given parameters
+        :param n: height of the net
+        :param m: width of the nett
+        :param alpha: the initial learning rate
+        :param radius: the radius of effected neurons in the neighborhood of the selected neuron
+        :param name: name of the net
+        :param loop_x: should we connect the last neuron with the first one
+        """
         self.network = np.random.random((n, m, 3))
-        for x in self.network:
-            for y in x:
-                y[2] = 0
-        # self.network = np.array([[[-1,1],[1,1]],[[-1,-1],[1,-1]]]).astype(float)
-
         self.alpha = alpha
         self.radius = radius
         self.height = n - 1
@@ -22,6 +26,12 @@ class Kohonen:
         self.name = name
 
     def _fit_one(self, pt, alpha):
+        """
+        update the network given 1 sample of the data
+        :param pt: the point
+        :param alpha: the current learning rate
+        :return: None
+        """
         pt = np.array([pt[0],pt[1],0])
         dist = np.sqrt(np.sum((self.network - pt) ** 2, axis=2))
         min_index = np.array(np.where(dist == dist.min()))
@@ -39,8 +49,7 @@ class Kohonen:
         dir = np.array([(pt - cell) for cell in dir]) \
             .reshape(self.network[min_y:max_y + 1, min_x:max_x + 1].shape) \
             .astype(float)
-        self.network[min_y:max_y + 1, min_x:max_x + 1, :2] += ((dir[:, :, :2] * alpha).T * mask.T).T
-        self.network[min_index[0],min_index[1],2] += 1
+        self.network[min_y:max_y + 1, min_x:max_x + 1] += ((dir[:, :] * alpha).T * mask.T).T
         if self.loop_x:
             if max_x != int(min_index[1]) + self.radius:
                 dx = int(min_index[1]) + self.radius - max_x
@@ -58,10 +67,14 @@ class Kohonen:
                 self.network[min_y:max_y + 1,self.width + dx:self.width] += ((dir[:, :] * alpha).T * mask_cap.T).T
 
 
-
-
-
     def fit(self, data, epochs, draw):
+        """
+        fit the whole data set
+        :param data: the data
+        :param epochs: how many times to train on the data set
+        :param draw: a list of which iterations to draw
+        :return:
+        """
         i = 0
         dt = data
         for e in range(epochs):
@@ -76,6 +89,12 @@ class Kohonen:
         self.draw(data,i)
 
     def draw(self, data, iter):
+        """
+        draws the network and the data in its current state
+        :param data: the data
+        :param iter: the iterations
+        :return:
+        """
         fig, ax = plt.subplots()
         ax.scatter(data[:, 0], data[:, 1], c='blue', alpha=0.1)
         for x in range(self.network.shape[1]):
@@ -144,5 +163,6 @@ def partB(alpha , radius , epochs):
 
 
 if __name__ == "__main__":
-    partA(1,10 , 1500 )
-    partB(1,3 , 1500 )
+    for i in [0.1,0.5,1]:
+        partB(i,7 , 1500 )
+
